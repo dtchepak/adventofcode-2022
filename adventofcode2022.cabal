@@ -20,7 +20,8 @@ library
     import:           common-options
     exposed-modules:
         Aoc,
-        Aoc.Day01
+        Aoc.Day01,
+        Aoc.Day02
     build-depends:    megaparsec ^>=9.3,
                       text ^>=2.0.1
     hs-source-dirs:   src
@@ -28,7 +29,8 @@ library
 test-suite adventofcode2022-test
     import:           common-options
     other-modules:
-        Aoc.Day01Spec
+        Aoc.Day01Spec,
+        Aoc.Day02Spec,
     type:             exitcode-stdio-1.0
     hs-source-dirs:   test
     main-is:          Spec.hs
