@@ -1,32 +1,40 @@
 module Aoc.Day01 (
-  part1,
-  findMax,
-  input,
   parseInput,
-  part2,
-  sumTop3
+  findMax,
+  sumTop3,
+  answers
 ) where
 
-import Data.List (groupBy, sortOn)
+import Data.List (sortOn)
 import Data.Ord (Down(..))
 
-part1 :: IO Int
-part1 = findMax <$> input
+type ElfCalories = Int
 
-findMax :: [[Int]] -> Int
+readInput :: IO [[ElfCalories]]
+readInput = parseInput <$> readFile "data/day01.txt"
+
+parseInput :: String -> [[ElfCalories]]
+parseInput =
+  fmap (fmap read) . splitOn (== "") . lines
+
+findMax :: [[ElfCalories]] -> ElfCalories
 findMax = maximum . fmap sum
 
-parseInput :: String -> [[Int]]
-parseInput =
-  let readSubList = fmap read . filter (not . null)
-  in filter (not . null) . fmap readSubList . groupBy (\a b -> a /= "" && b /= "") . lines
-
-input :: IO [[Int]]
-input =
-  parseInput <$> readFile "data/day01.txt"
-
-sumTop3 :: [[Int]] -> Int
+sumTop3 :: [[ElfCalories]] -> Int
 sumTop3 = sum . take 3 . sortOn Down . fmap sum
 
-part2 :: IO Int
-part2 = sumTop3 <$> input
+headOr :: Foldable t => a -> t a -> a
+headOr = foldr const
+
+splitOn :: (a -> Bool) -> [a] -> [[a]]
+splitOn p =
+  let add a lists = (a:headOr [] lists) : drop 1 lists
+  in foldr (\x -> if p x then ([]:) else add x) []
+
+answers :: IO ()
+answers = do
+  input <- readInput
+  putStrLn "Part 1:"
+  print (findMax input)
+  putStrLn "Part 2:"
+  print (sumTop3 input)
