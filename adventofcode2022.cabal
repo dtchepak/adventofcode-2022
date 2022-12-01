@@ -10,22 +10,26 @@ maintainer:         dave@davesquared.net
 build-type:         Simple
 extra-doc-files:    CHANGELOG.md
 -- extra-source-files:
+tested-with:         GHC == 9.4.2
 
-common warnings
-    ghc-options: -Wall
+common common-options
+    ghc-options:
+        -Wall
+        -threaded
+        -rtsopts
+        -with-rtsopts=-N
+    default-language: Haskell2010
 
 library
-    import:           warnings
+    import:           common-options
     exposed-modules:
         Aoc,
         Aoc.Day01
-    build-depends:    base ^>=4.16.3.0
+    build-depends:    base ^>=4.17.0.0
     hs-source-dirs:   src
-    default-language: GHC2021
 
 test-suite adventofcode2022-test
-    import:           warnings
-    default-language: GHC2021
+    import:           common-options
     other-modules:
         Aoc.Day01Spec
     -- other-extensions:
@@ -33,7 +37,7 @@ test-suite adventofcode2022-test
     hs-source-dirs:   test
     main-is:          Spec.hs
     build-depends:
-        base ^>=4.16.3.0,
+        base ^>=4.17.0.0,
         hspec ^>=2.10.6,
         QuickCheck ^>=2.14.2,
         adventofcode2022
