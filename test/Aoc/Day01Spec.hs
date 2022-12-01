@@ -13,3 +13,5 @@ spec = do
       parseInput part1Example `shouldBe` [[1000, 2000, 3000], [4000], [5000, 6000], [7000, 8000, 9000], [10000]]
     it "part 1: example maximum" $
        findMax (parseInput part1Example) `shouldBe` 24000
+    it "part 2: sum top 3 from example" $
+       sumTop3 (parseInput part1Example) `shouldBe` 45000
