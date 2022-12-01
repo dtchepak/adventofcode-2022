@@ -12,14 +12,16 @@ tested-with:         GHC == 9.4.2
 common common-options
     ghc-options:
         -Wall
-    default-language: Haskell2010
+    build-depends:    base ^>=4.17.0.0
+    default-language: GHC2021
 
 library
     import:           common-options
     exposed-modules:
         Aoc,
         Aoc.Day01
-    build-depends:    base ^>=4.17.0.0
+    build-depends:    megaparsec ^>=9.3,
+                      text ^>=2.0.1
     hs-source-dirs:   src
 
 test-suite adventofcode2022-test
@@ -30,7 +32,6 @@ test-suite adventofcode2022-test
     hs-source-dirs:   test
     main-is:          Spec.hs
     build-depends:
-        base ^>=4.17.0.0,
         hspec ^>=2.10.6,
         QuickCheck ^>=2.14.2,
         adventofcode2022
