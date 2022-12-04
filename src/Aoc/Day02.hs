@@ -1,6 +1,8 @@
 module Aoc.Day02 (
   Shape,
-  Result,
+  Result(..),
+  defeats,
+  defeatedBy,
   unsafeGameScore,
   result,
   sumOfScores,
@@ -12,9 +14,9 @@ module Aoc.Day02 (
 readInput :: IO String
 readInput = readFile "data/day02.txt"
 
-data Shape = Rock | Paper | Scissors deriving (Show, Eq)
+data Shape = Rock | Paper | Scissors deriving (Show, Eq, Enum)
 
-data Result = Win | Draw | Loss deriving (Show, Eq)
+data Result = Win | Draw | Loss deriving (Show, Eq, Enum)
 
 unsafeParseShape :: Char -> Shape
 unsafeParseShape c = case c of
@@ -47,19 +49,22 @@ shapeScore Rock = 1
 shapeScore Paper = 2
 shapeScore Scissors = 3
 
+defeats :: Shape -> Shape
+defeats Rock = Paper
+defeats Paper = Scissors
+defeats Scissors = Rock
+
+defeatedBy :: Shape -> Shape
+defeatedBy Rock = Scissors
+defeatedBy Paper = Rock
+defeatedBy Scissors = Paper
+
 -- | Result for player of second shape
 result :: Shape -> Shape -> Result
-result Rock Rock = Draw
-result Rock Paper = Win
-result Rock Scissors = Loss
-
-result Paper Rock = Loss
-result Paper Paper = Draw
-result Paper Scissors = Win
-
-result Scissors Rock = Win
-result Scissors Paper = Loss
-result Scissors Scissors = Draw
+result theirs ours
+  | theirs == ours = Draw
+  | ours == defeats theirs = Win
+  | otherwise = Loss
 
 -- | Score for player of second shape
 gameScore :: Shape -> Shape -> Int
@@ -71,17 +76,9 @@ sumOfScores = sum . fmap unsafeGameScore . lines
 -- | Given an opponent's shape and a required result, return the shape we need to play
 -- to achieve that result.
 shapeForResult :: Shape -> Result -> Shape
-shapeForResult Rock Win = Paper
-shapeForResult Rock Draw = Rock
-shapeForResult Rock Loss = Scissors
-
-shapeForResult Paper Win = Scissors
-shapeForResult Paper Draw = Paper
-shapeForResult Paper Loss = Rock
-
-shapeForResult Scissors Win = Rock
-shapeForResult Scissors Draw = Scissors
-shapeForResult Scissors Loss = Paper
+shapeForResult theirs Draw = theirs
+shapeForResult theirs Win = defeats theirs
+shapeForResult theirs Loss = defeatedBy theirs
 
 unsafeGameScore2 :: String -> Int
 unsafeGameScore2 (x : ' ' : y : []) = 

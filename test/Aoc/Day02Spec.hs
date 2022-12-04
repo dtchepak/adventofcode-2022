@@ -1,7 +1,14 @@
 module Aoc.Day02Spec (spec) where
 
-import Test.Hspec
 import Aoc.Day02
+import Test.Hspec
+import Test.Hspec.QuickCheck
+import Test.QuickCheck
+
+newtype ArbShape = ArbShape Shape deriving (Show, Eq)
+
+instance Arbitrary ArbShape where
+  arbitrary = ArbShape <$> elements (enumFrom (toEnum 0))
 
 spec :: Spec
 spec = do
@@ -24,3 +31,12 @@ spec = do
       unsafeGameScore2 "C Z" `shouldBe` 7
     it "part 2: example input" $
       sumOfScores2 exampleData `shouldBe` 12
+
+    prop "equal shapes should be a draw" $
+      \(ArbShape shape) -> result shape shape `shouldBe` Draw
+
+    prop "a defeats b -> b defeated by a" $
+      \(ArbShape this) (ArbShape other) -> case result other this of
+        Draw -> label "draw" $ this === other
+        Win ->  label "win"  $ this === defeats other .&&. other === defeatedBy this
+        Loss -> label "loss" $ this === defeatedBy other .&&. other === defeats this
