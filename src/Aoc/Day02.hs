@@ -4,6 +4,8 @@ module Aoc.Day02 (
   unsafeGameScore,
   result,
   sumOfScores,
+  unsafeGameScore2,
+  sumOfScores2,
   answers
 ) where
 
@@ -23,6 +25,13 @@ unsafeParseShape c = case c of
   'Y' -> Paper
   'Z' -> Scissors
   _   -> error ("Unknown shape: " ++ [c])
+
+unsafeParseResult :: Char -> Result
+unsafeParseResult c = case c of
+  'X' -> Loss
+  'Y' -> Draw
+  'Z' -> Win
+  _   -> error ("Unknown result: " ++ [c])
 
 unsafeGameScore :: String -> Int
 unsafeGameScore (x : ' ' : y : []) = gameScore (unsafeParseShape x) (unsafeParseShape y)
@@ -59,8 +68,36 @@ gameScore theirs ours = shapeScore ours + resultScore (result theirs ours)
 sumOfScores :: String -> Int
 sumOfScores = sum . fmap unsafeGameScore . lines
 
+-- | Given an opponent's shape and a required result, return the shape we need to play
+-- to achieve that result.
+shapeForResult :: Shape -> Result -> Shape
+shapeForResult Rock Win = Paper
+shapeForResult Rock Draw = Rock
+shapeForResult Rock Loss = Scissors
+
+shapeForResult Paper Win = Scissors
+shapeForResult Paper Draw = Paper
+shapeForResult Paper Loss = Rock
+
+shapeForResult Scissors Win = Rock
+shapeForResult Scissors Draw = Scissors
+shapeForResult Scissors Loss = Paper
+
+unsafeGameScore2 :: String -> Int
+unsafeGameScore2 (x : ' ' : y : []) = 
+  let theirShape = unsafeParseShape x
+      requiredResult = unsafeParseResult y
+      ourShape = shapeForResult theirShape requiredResult
+  in gameScore theirShape ourShape
+unsafeGameScore2 s = error ("Unknown game format: " ++ s)
+
+sumOfScores2 :: String -> Int
+sumOfScores2 = sum . fmap unsafeGameScore2 . lines
+
 answers :: IO ()
 answers = do
   input <- readInput
   putStrLn "Part 1"
   print (sumOfScores input)
+  putStrLn "Part 2"
+  print (sumOfScores2 input)
