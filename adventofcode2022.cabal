@@ -19,9 +19,10 @@ common common-options
 library
     import:           common-options
     exposed-modules:
-        Aoc,
-        Aoc.Day01,
-        Aoc.Day02
+        Aoc
+        , Aoc.Day01
+        , Aoc.Day02
+        , Aoc.Day03
     build-depends:    megaparsec ^>=9.3,
                       text ^>=2.0.1
     hs-source-dirs:   src
@@ -29,14 +30,16 @@ library
 test-suite adventofcode2022-test
     import:           common-options
     other-modules:
-        Aoc.Day01Spec,
-        Aoc.Day02Spec,
+        Aoc.Day01Spec
+        , Aoc.Day02Spec
+        , Aoc.Day03Spec
     type:             exitcode-stdio-1.0
     hs-source-dirs:   test
     main-is:          Spec.hs
     build-depends:
         hspec ^>=2.10.6,
         QuickCheck ^>=2.14.2,
+        text,
         adventofcode2022
     build-tool-depends:  hspec-discover:hspec-discover == 2.*
     ghc-options:
