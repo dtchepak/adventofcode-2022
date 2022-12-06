@@ -25,3 +25,5 @@ spec = do
       mapMaybe compartmentPriority exampleData === [16, 38, 42, 22,  20, 19]
     it "part 1: example" $
       part1 (T.unlines exampleData) === 157
+    it "part 2: example" $
+      part2 (T.unlines exampleData) === 70
