@@ -5,7 +5,7 @@ import Data.Char (isAlphaNum)
 import Data.Bifunctor (first)
 import Data.Foldable (traverse_)
 import Data.Map (Map)
-import Data.Maybe (fromMaybe, catMaybes)
+import Data.Maybe (fromMaybe)
 import qualified Data.Map as Map
 import qualified Data.Text as T
 import qualified Data.Text.IO as T
@@ -21,18 +21,6 @@ readInput :: IO T.Text
 readInput = T.readFile "data/day05.txt"
 
 data Stack a = Stack [a] deriving (Show, Eq)
-
-push :: a -> Stack a -> Stack a
-push x (Stack xs)= Stack (x:xs)
-
-pop :: Stack a -> (Maybe a, Stack a)
-pop (Stack (x:xs)) = (Just x, Stack xs)
-pop (Stack []) = (Nothing, Stack [])
-
-popN :: Int -> Stack a -> ([a], Stack a)
-popN n =
-  first catMaybes . (runState . replicateM n . state) pop
-
 type Stacks = Map Int (Stack Char)
 
 moveGroup :: Int -> Int -> Int -> State Stacks ()
@@ -53,16 +41,6 @@ move n from to =
 
 data Move = Move { count:: Int, fromCrate :: Int, toCrate::Int} deriving (Show, Eq)
 
-type Parser = Parsec Void T.Text
-
--- Example input: "move 1 from 2 to 1"
-parseMove :: Parser Move
-parseMove = liftA3 Move (string "move " *> L.decimal) (string " from " *> L.decimal) (string " to " *> L.decimal)
-
-parseMoves :: T.Text -> Either String [Move]
-parseMoves =
-  first show . traverse (parse parseMove "") . filter ("move" `T.isPrefixOf`) . T.lines
-
 runMoves :: [Move] -> Stacks -> Stacks
 runMoves = execState . traverse_ (\(Move c from to) -> move c from to)
 
@@ -81,6 +59,16 @@ answers = do
   print $ tops . flip runMoves initial <$> moves
   putStrLn "Part 2:"
   print $ tops . flip runMoves2 initial <$> moves
+
+type Parser = Parsec Void T.Text
+
+-- Example input: "move 1 from 2 to 1"
+parseMove :: Parser Move
+parseMove = liftA3 Move (string "move " *> L.decimal) (string " from " *> L.decimal) (string " to " *> L.decimal)
+
+parseMoves :: T.Text -> Either String [Move]
+parseMoves =
+  first show . traverse (parse parseMove "") . filter ("move" `T.isPrefixOf`) . T.lines
 
 {-| Partial function to parse stacks from the input format.
 
