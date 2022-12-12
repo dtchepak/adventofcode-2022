@@ -35,18 +35,6 @@ popN n =
 
 type Stacks = Map Int (Stack Char)
 
-moveOne ::  Int -> Int -> Stacks -> Stacks
-moveOne from to m =
-  let source = fromMaybe (error $ "No stack " ++ show from ) $ Map.lookup from m
-      target = fromMaybe (error $ "No stack " ++ show to) $ Map.lookup to m
-      (c, source') = pop source
-      target' = fromMaybe target ((`push` target) <$> c)
-  in Map.insert from source' . Map.insert to target' $ m
-
-move :: Int -> Int -> Int -> State Stacks ()
-move n from to =
-  replicateM_ n . modify $ moveOne from to
-
 moveGroup :: Int -> Int -> Int -> State Stacks ()
 moveGroup n from to = modify $ \m ->
   let Stack source = fromMaybe (error $ "No stack " ++ show from ) $ Map.lookup from m
@@ -54,6 +42,14 @@ moveGroup n from to = modify $ \m ->
       (crates, source') = (take n source, Stack (drop n source))
       target' = Stack (crates ++ target)
   in Map.insert from source' . Map.insert to target' $ m
+
+moveOne ::  Int -> Int -> Stacks -> Stacks
+moveOne from to =
+  execState (moveGroup 1 from to)
+
+move :: Int -> Int -> Int -> State Stacks ()
+move n from to =
+  replicateM_ n . modify $ moveOne from to
 
 data Move = Move { count:: Int, fromCrate :: Int, toCrate::Int} deriving (Show, Eq)
 
