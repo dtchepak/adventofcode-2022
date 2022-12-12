@@ -1,15 +1,114 @@
+{-# LANGUAGE OverloadedStrings #-}
 module Aoc.Day05 where
 
+import Data.Char (isAlphaNum)
+import Data.Bifunctor (first)
+import Data.Foldable (traverse_)
+import Data.Map (Map)
+import Data.Maybe (fromMaybe, catMaybes)
+import qualified Data.Map as Map
 import qualified Data.Text as T
 import qualified Data.Text.IO as T
+import Data.Void
+import Control.Applicative (liftA3)
+import Control.Monad
+import Control.Monad.State.Strict
+import Text.Megaparsec hiding (State)
+import Text.Megaparsec.Char
+import qualified Text.Megaparsec.Char.Lexer as L
 
 readInput :: IO T.Text
 readInput = T.readFile "data/day05.txt"
 
+data Stack a = Stack [a] deriving (Show, Eq, Foldable)
+
+push :: a -> Stack a -> Stack a
+push x (Stack xs)= Stack (x:xs)
+
+pop :: Stack a -> (Maybe a, Stack a)
+pop (Stack (x:xs)) = (Just x, Stack xs)
+pop (Stack []) = (Nothing, Stack [])
+
+popN :: Int -> Stack a -> ([a], Stack a)
+popN n =
+  first catMaybes . (runState . replicateM n . state) pop
+
+type Stacks = Map Int (Stack Char)
+
+moveOne ::  Int -> Int -> Stacks -> Stacks
+moveOne from to m =
+  let source = fromMaybe (error $ "No stack " ++ show from ) $ Map.lookup from m
+      target = fromMaybe (error $ "No stack " ++ show to) $ Map.lookup to m
+      (c, source') = pop source
+      target' = fromMaybe target ((`push` target) <$> c)
+  in Map.insert from source' . Map.insert to target' $ m
+
+move :: Int -> Int -> Int -> State Stacks ()
+move n from to =
+  replicateM_ n . modify $ moveOne from to
+
+data Move = Move { count:: Int, fromCrate :: Int, toCrate::Int} deriving (Show, Eq)
+
+type Parser = Parsec Void T.Text
+
+-- Example input: "move 1 from 2 to 1"
+parseMove :: Parser Move
+parseMove = liftA3 Move (string "move " *> L.decimal) (string " from " *> L.decimal) (string " to " *> L.decimal)
+
+parseMoves :: T.Text -> Either String [Move]
+parseMoves =
+  first show . traverse (parse parseMove "") . filter ("move" `T.isPrefixOf`) . T.lines
+
+runMoves :: [Move] -> Stacks -> Stacks
+runMoves = execState . traverse_ (\(Move c from to) -> move c from to)
+
+tops :: Stacks -> [Char]
+tops = map (\(_, Stack xs) -> head xs) . Map.toAscList 
+
 answers :: IO ()
 answers = do
   input <- readInput
+  let initial = unsafeParseStacks input
+  let moves = parseMoves input
   putStrLn "Part 1:"
-  print "TODO"
+  print $ tops . flip runMoves initial <$> moves
   putStrLn "Part 2:"
   print "TODO"
+
+{-| Partial function to parse stacks from the input format.
+
+Initial stacks from data/day05.txt:
+```
+    [V] [G]             [H]        
+[Z] [H] [Z]         [T] [S]        
+[P] [D] [F]         [B] [V] [Q]    
+[B] [M] [V] [N]     [F] [D] [N]    
+[Q] [Q] [D] [F]     [Z] [Z] [P] [M]
+[M] [Z] [R] [D] [Q] [V] [T] [F] [R]
+[D] [L] [H] [G] [F] [Q] [M] [G] [W]
+[N] [C] [Q] [H] [N] [D] [Q] [M] [B]
+ 1   2   3   4   5   6   7   8   9 
+ ```
+
+Result:
+```
+1: [Z, P, B, Q, M, D, N]
+2: [V, H, D, M, Q, Z, L, C]
+...
+9: [M, R, W, B]
+```
+```
+-}
+unsafeParseStacks :: T.Text -> Stacks
+unsafeParseStacks =
+  let stackLines =
+        filter (not . T.null)
+        . map (T.filter isAlphaNum)
+        . T.transpose
+        . takeWhile (not . T.null)
+        . T.lines
+      readStack :: T.Text -> Int
+      readStack line = read . pure . T.last $ line
+      lineToMapEntry line = (readStack line, Stack . T.unpack . T.init $ line)
+  in Map.fromList . fmap lineToMapEntry . stackLines
+
