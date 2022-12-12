@@ -26,6 +26,7 @@ library
         , Aoc.Day04
         , Aoc.Day05
         , Aoc.Day06
+        , Aoc.Day07
     build-depends:    megaparsec ^>=9.3,
                       text ^>=2.0.1,
                       mtl ^>=2.3.1,
@@ -41,6 +42,7 @@ test-suite adventofcode2022-test
         , Aoc.Day04Spec
         , Aoc.Day05Spec
         , Aoc.Day06Spec
+        , Aoc.Day07Spec
     type:             exitcode-stdio-1.0
     hs-source-dirs:   test
     main-is:          Spec.hs
