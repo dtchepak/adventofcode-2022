@@ -20,7 +20,7 @@ import qualified Text.Megaparsec.Char.Lexer as L
 readInput :: IO T.Text
 readInput = T.readFile "data/day05.txt"
 
-data Stack a = Stack [a] deriving (Show, Eq, Foldable)
+data Stack a = Stack [a] deriving (Show, Eq)
 
 push :: a -> Stack a -> Stack a
 push x (Stack xs)= Stack (x:xs)
@@ -47,6 +47,14 @@ move :: Int -> Int -> Int -> State Stacks ()
 move n from to =
   replicateM_ n . modify $ moveOne from to
 
+moveGroup :: Int -> Int -> Int -> State Stacks ()
+moveGroup n from to = modify $ \m ->
+  let Stack source = fromMaybe (error $ "No stack " ++ show from ) $ Map.lookup from m
+      Stack target = fromMaybe (error $ "No stack " ++ show to) $ Map.lookup to m
+      (crates, source') = (take n source, Stack (drop n source))
+      target' = Stack (crates ++ target)
+  in Map.insert from source' . Map.insert to target' $ m
+
 data Move = Move { count:: Int, fromCrate :: Int, toCrate::Int} deriving (Show, Eq)
 
 type Parser = Parsec Void T.Text
@@ -62,6 +70,9 @@ parseMoves =
 runMoves :: [Move] -> Stacks -> Stacks
 runMoves = execState . traverse_ (\(Move c from to) -> move c from to)
 
+runMoves2 :: [Move] -> Stacks -> Stacks
+runMoves2 = execState . traverse_ (\(Move c from to) -> moveGroup c from to)
+
 tops :: Stacks -> [Char]
 tops = map (\(_, Stack xs) -> head xs) . Map.toAscList 
 
@@ -73,7 +84,7 @@ answers = do
   putStrLn "Part 1:"
   print $ tops . flip runMoves initial <$> moves
   putStrLn "Part 2:"
-  print "TODO"
+  print $ tops . flip runMoves2 initial <$> moves
 
 {-| Partial function to parse stacks from the input format.
 
