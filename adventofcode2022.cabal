@@ -49,6 +49,7 @@ test-suite adventofcode2022-test
     build-depends:
         hspec ^>=2.10.6,
         QuickCheck ^>=2.14.2,
+        raw-strings-qq ^>=1.1,
         text,
         containers,
         adventofcode2022
