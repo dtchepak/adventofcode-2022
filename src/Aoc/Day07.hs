@@ -1,9 +1,10 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Aoc.Day07 where
 
-import Data.List (foldl', isPrefixOf)
+import Data.List (foldl', isPrefixOf, sort)
 import Data.Map (Map)
 import qualified Data.Map as Map
+import Data.Maybe (fromJust)
 import Data.Foldable (fold)
 import qualified Data.Text as T
 import qualified Data.Text.IO as T
@@ -92,6 +93,15 @@ readInput = T.readFile "data/day07.txt"
 part1 :: FileSystem -> Int
 part1 = sum . filter (<= 100000) . map (size . snd) . Map.toList
 
+part2 :: FileSystem -> Int
+part2 fs =
+  let requiredSpace = 30000000
+      totalDisk = 70000000
+      totalUsed = size (fromJust (list fs "/"))
+      freeDisk = totalDisk - totalUsed
+      toDelete = requiredSpace - freeDisk
+  in head . sort . filter (>= toDelete) . map (size . snd) . Map.toList $ fs
+
 answers :: IO ()
 answers = do
   input <- readInput
@@ -99,3 +109,4 @@ answers = do
   putStrLn "Part 1:"
   print $ part1 session
   putStrLn "Part 2:"
+  print $ part2 session

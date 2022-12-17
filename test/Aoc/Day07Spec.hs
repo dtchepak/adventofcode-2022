@@ -69,5 +69,7 @@ dir ghi
          totalSize fs "/a" === Just 94853
     it "part 1: example 1, total  <= 100000" $
       part1 (parseSession exampleData) === 95437
+    it "part 2: example" $
+      part2 (parseSession exampleData) === 24933642
 
 
