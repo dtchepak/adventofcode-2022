@@ -3,6 +3,7 @@ module Aoc.Day07Spec (spec) where
 
 import Aoc.Day07
 import qualified Data.Text as T
+import Data.Map ((!))
 import qualified Data.Map as Map
 import Text.RawString.QQ
 import Test.Hspec
@@ -33,6 +34,9 @@ $ ls
 5626152 d.ext
 7214296 k|]
 
+totalSize :: FileSystem -> T.Text -> Maybe FileSize
+totalSize fs = fmap size . list fs
+
 spec :: Spec
 spec = do
   describe "path" $ do
@@ -54,8 +58,16 @@ $ cd def
 $ ls
 dir ghi
 10 c|]
-      in fmap (fmap size . list fs) ["/abc", "/abc/def"] === [Just 3, Just 10]
+      in fmap (fmap size . list fs) ["/abc", "/abc/def"] === [Just (3+10), Just 10]
   describe "example data" $ do 
     it "part 1: example 1" $
       let fs = parseSession exampleData
       in fmap (fmap size . list fs) ["/d", "/a/e"] === [Just 24933642, Just 584]
+    it "part 1: example 1 sizes" $
+      let fs = parseSession exampleData
+      in totalSize fs "/a/e" === Just 584 .&&.
+         totalSize fs "/a" === Just 94853
+    it "part 1: example 1, total  <= 100000" $
+      part1 (parseSession exampleData) === 95437
+
+

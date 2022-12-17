@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Aoc.Day07 where
 
-import Data.List (foldl')
+import Data.List (foldl', isPrefixOf)
 import Data.Map (Map)
 import qualified Data.Map as Map
 import Data.Foldable (fold)
@@ -9,8 +9,7 @@ import qualified Data.Text as T
 import qualified Data.Text.IO as T
 import Text.Read (readEither)
 
--- | Size of files in a directory (excluding sub-directories)
-type DirectFileSize = Int
+type FileSize = Int
 
 data Path = Path [T.Text]
   deriving (Show, Eq, Ord)
@@ -24,10 +23,22 @@ pathIn (Path xs) = Path . (: xs)
 pathUp :: Path -> Path
 pathUp (Path xs) = Path (drop 1 xs)
 
+pathIsRoot :: Path -> Bool
+pathIsRoot (Path xs) = null xs
+
 pathDepth :: Path -> Int
 pathDepth (Path xs) = length xs
+
+paths :: Path -> [Path]
+paths (Path p) = Path <$> scanr (:) [] p
+
+-- | True if first Path is the parent of the second.
+-- A path is not considered a parent of itself.
+isParentOf :: Path -> Path -> Bool
+(Path a) `isParentOf` (Path b) = 
+  a /= b && a `isPrefixOf` b
  
-data DirectoryContents = DirectoryContents { size :: DirectFileSize }
+data DirectoryContents = DirectoryContents { size :: FileSize }
   deriving (Show, Eq)
 
 instance Semigroup DirectoryContents where
@@ -45,8 +56,9 @@ newBrowse :: FsBrowseState
 newBrowse = FsBrowseState (Path []) Map.empty
 
 addFile :: Path -> DirectoryContents -> FileSystem -> FileSystem
-addFile path d =
-  Map.alter (pure . (d <>) . fold) path
+addFile path d fs =
+  let addPath = Map.alter (pure . (d <>) . fold)
+  in foldr addPath fs (paths path)
 
 cd :: T.Text -> FsBrowseState -> FsBrowseState
 cd dir s =
@@ -77,8 +89,13 @@ parseSession =
 readInput :: IO T.Text
 readInput = T.readFile "data/day07.txt"
 
+part1 :: FileSystem -> Int
+part1 = sum . filter (<= 100000) . map (size . snd) . Map.toList
+
 answers :: IO ()
 answers = do
   input <- readInput
+  let session = parseSession input
   putStrLn "Part 1:"
+  print $ part1 session
   putStrLn "Part 2:"
